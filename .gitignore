@@ -1,0 +1,11 @@
+# Configuration file (contains secrets!)
+config/config.php
+
+# Vendor directory (if you use Composer later)
+vendor/
+
+# IDE files / OS files
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
