@@ -343,7 +343,27 @@ class Movie {
         
         return !empty($result);
     }
-    
+    /**
+     * Return all movies this user has favorited.
+     */
+    public function getFavoritesByUser(int $userId): array
+    {
+        $sql  = "SELECT m.*, f.movie_id AS tmdb_id
+                FROM movies m
+                JOIN favorites f ON f.movie_id = m.id
+                WHERE f.user_id = ?";
+        $result = $this->db->select($sql, [$userId]);
+
+        // If the query returned false (no results), return an empty array
+        if ($result === false) {
+            return [];
+        }
+
+        return $result;
+    }
+
+
+
     /**
      * Fetch movie data from TMDB API
      */

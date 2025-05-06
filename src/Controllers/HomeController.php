@@ -21,19 +21,27 @@ class HomeController extends BaseController {
         ];
         $this->render('home/about', $data);
     }
-    
     /**
-     * Search functionality
+     * GET /search
      */
-    public function search() {
-        $query = $_GET['q'] ?? '';
-        $data = [
-            'pageTitle' => 'Search Results',
-            'query' => $query
-        ];
-        $this->render('home/search', $data);
+    public function search()
+    {
+        $query = trim($_GET['q'] ?? '');
+        $results = [];
+
+        if ($query !== '') {
+            $tmdb    = new \App\Services\TMDBApi();
+            $payload = $tmdb->searchMovies($query);
+            $results = $payload ? $payload['results'] : [];
+        }
+
+        $this->render('home/search', [
+            'pageTitle' => 'Explore',
+            'query'     => $query,
+            'results'   => $results
+        ]);
     }
-    
+
     /**
      * 404 page
      */

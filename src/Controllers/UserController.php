@@ -80,6 +80,26 @@ class UserController extends BaseController {
         ];
         
         $this->render('users/profile', $data);
+
+            // NEW: load favorites + collections
+        $movieModel      = new \App\Models\Movie();
+        $favorites       = $movieModel->getFavoritesByUser($user['id']);
+
+        $collectionModel = new \App\Models\Collection();
+        // include private only if it’s the owner’s page
+        $includePrivate  = $isOwner;
+        $collections     = $collectionModel
+                            ->getUserCollections($user['id'], $includePrivate);
+
+        // pass them into your view
+        $this->render('users/profile', [
+            'pageTitle'   => $user['username'] . "'s Profile",
+            'user'        => $user,
+            'isOwner'     => $isOwner,
+            'favorites'   => $favorites,
+            'collections' => $collections,
+            // plus any existing data you were already passing…
+        ]);
     }
     
     /**
