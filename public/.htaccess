@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /eiganights_php/public/
+    
+    # Serve existing files directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Route everything else to index.php
+    RewriteRule ^ index.php [L]
+</IfModule>

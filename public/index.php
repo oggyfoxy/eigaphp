@@ -1,112 +1,60 @@
 <?php
-// Start session (we'll need this for login later)
+// Start session
 session_start();
 
-// 1. Load Configuration
+// Load Configuration
 require_once __DIR__ . '/../config/config.php';
 
-// 2. Basic Autoloader
-spl_autoload_register(function ($class_name) {
-    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
-    $prefix = 'App\\'; // Be careful with escaping backslashes if using double quotes
-    $base_dir = __DIR__ . '/../src/'; // Path to the src directory
+// Error reporting
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class_name, $len) !== 0) {
-        // echo "Autoloader skipping non-App class: " . $class_name . "<br>"; // Optional debug
-        return;
-    }
+// Load Composer's autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
 
-    $relative_class = substr($class_name, $len);
-    $file = $base_dir . $relative_class . '.php';
-
-    // --- TEMPORARY DEBUG ---
-    echo "Autoloader attempting to load class: " . $class_name . "<br>";
-    echo "Checking file path: " . $file . "<br>";
-    // --- END DEBUG ---
-
-    if (file_exists($file)) {
-        // echo "File found! Requiring: " . $file . "<br>"; // More debug
-        require_once $file;
+try {
+    // Simple Routing
+    $requestUri = $_SERVER['REQUEST_URI'];
+    $basePath = dirname($_SERVER['SCRIPT_NAME']);
+    if ($basePath !== '/' && strpos($requestUri, $basePath) === 0) {
+        $routePath = substr($requestUri, strlen($basePath));
     } else {
-        echo "File NOT FOUND: " . $file . "<br>"; // Important debug!
-        // Log error or handle missing class file
-        error_log("Autoloader: Could not find file for class: " . $class_name . " at path: " . $file);
+        $routePath = $requestUri;
     }
-});
+    $routePath = strtok($routePath, '?');
+    $routePath = rtrim($routePath, '/');
+    if (empty($routePath)) {
+        $routePath = '/';
+    }
 
+    // Try manually requiring files
+    require_once __DIR__ . '/../src/Services/Auth.php';
+    require_once __DIR__ . '/../src/Controllers/BaseController.php';
+    require_once __DIR__ . '/../src/Controllers/HomeController.php';
 
-
-// 3. Simple Routing
-$requestUri = $_SERVER['REQUEST_URI'];
-// Remove base path and query string to get the route path
-$basePath = dirname($_SERVER['SCRIPT_NAME']); // Gets '/eiganights_php/public' or similar
-if ($basePath !== '/' && strpos($requestUri, $basePath) === 0) {
-    $routePath = substr($requestUri, strlen($basePath));
-} else {
-    $routePath = $requestUri;
-}
-$routePath = strtok($routePath, '?'); // Remove query string like ?id=123
-$routePath = rtrim($routePath, '/'); // Remove trailing slash
-if (empty($routePath)) {
-    $routePath = '/'; // Default to root if empty after trimming
-}
-
-
-// --- Route Definitions ---
-// Match the cleaned route path
-switch ($routePath) {
-    case '/':
+    // Route Definitions
+    switch ($routePath) {
+        case '/':
+            $controller = new \App\Controllers\HomeController();
+            $controller->index();
+            break;
             
-        require_once __DIR__ . '/../src/Controllers/HomeController.php';
-        require_once __DIR__ . '/../src/Controllers/BaseController.php';
-
-        // Load Home Controller
-        $controller = new App\Controllers\HomeController(); // Assumes HomeController exists
-        $controller->index(); // Call the index method
-        break;
-
-    case '/movies':
-        // Example: Load Movie Controller (We'll create this later)
-        // $controller = new App\Controllers\MovieController();
-        // $controller->index();
-        echo "Movie List Page (Not Implemented Yet)"; // Placeholder
-        break;
-
-    case '/movie': // Example: /movie?id=123 - Query string handled separately
-        // Example: Load Movie Controller show method (Later)
-        // $controller = new App\Controllers\MovieController();
-        // $controller->show($_GET['id'] ?? null); // Pass ID from query string
-        echo "Single Movie Page (Not Implemented Yet)"; // Placeholder
-        break;
-
-    // Add more cases for /profile, /login, /api/..., etc. later
-
-    default:
-        // Handle 404 Not Found
-        http_response_code(404);
-        // You would ideally render a proper 404 view here
-        // For now, just echo:
-        require_once __DIR__ . '/../src/Views/errors/404.php'; // Need to create this file
-        break;
+        // Add your other routes
+        case '/login':
+            echo "Login page coming soon";
+            break;
+            
+        case '/register':
+            echo "Register page coming soon";
+            break;
+            
+        default:
+            http_response_code(404);
+            echo "Page not found: " . $routePath;
+            break;
+    }
+} catch (Exception $e) {
+    echo "<h1>Error</h1>";
+    echo "<p>" . $e->getMessage() . "</p>";
+    echo "<pre>" . $e->getTraceAsString() . "</pre>";
 }
-
-
-// --- Helper function often put in a BaseController or utility class ---
-// (We'll create controllers next, which will use this concept)
-/*
-function renderView($viewName, $data = []) {
-    extract($data); // Make array keys into variables (e.g., $data['title'] becomes $title)
-
-    // Start output buffering
-    ob_start();
-    // Include the specific view file (e.g., 'home/index.php')
-    require __DIR__ . '/../src/Views/' . $viewName . '.php';
-    // Get the content of the buffer
-    $viewContent = ob_get_clean();
-
-    // Now include the main layout, passing the title and content
-    $pageTitle = $data['pageTitle'] ?? 'eiganights'; // Pass title from data
-    require __DIR__ . '/../src/Views/layouts/main.php';
-}
-*/

@@ -1,43 +1,62 @@
-<?php
-// This file is included by the BaseController's render method.
-// Variables passed in the $data array are available here (e.g., $pageTitle).
-?>
-
-<h1>Welcome, user_xyz</h1> <!-- We'll make the username dynamic later -->
-
-<section>
-    <h2>search movies</h2>
-    <form action="/search" method="GET"> <!-- Action points to a route we'll define later -->
-        <input type="text" name="query" placeholder="Search movies..." aria-label="Search movies">
-        <button type="submit">Search</button>
+<!-- home/index.php view -->
+<!-- File path: src/Views/home/index.php -->
+<div class="hero animate-fadeIn">
+    <h1>Welcome, <?= $isLoggedIn ? htmlspecialchars($currentUser['username']) : 'Guest' ?></h1>
+    <p class="hero-subtitle">Discover, annotate, and collaborate on movies with fellow cinephiles.</p>
+    
+    <form action="<?= BASE_URL ?>/search" method="GET" class="search-form">
+        <div class="search-container">
+            <input type="text" name="q" placeholder="Search movies..." class="form-control">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
     </form>
-</section>
+</div>
 
-<section>
-    <h2>recently annotated</h2>
-    <!-- Placeholder for recently annotated movies -->
-    <!-- We will fetch this data from the database later -->
-    <p>(Recently annotated movie list will appear here)</p>
-    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <div class="movie-card-placeholder" style="border: 1px solid #ccc; padding: 10px; width: 150px;">
-            Movie Poster<br>
-            paprika (2006)<br>
-            <small>4 annotations</small>
+<?php if (!empty($popularMovies)): ?>
+    <section class="section">
+        <h2>Recently Annotated</h2>
+        <div class="grid">
+            <?php foreach ($popularMovies as $movie): ?>
+                <div class="card">
+                    <img src="<?= !empty($movie['poster_path']) ? $movie['poster_path'] : BASE_URL . '/img/no-poster.jpg' ?>" 
+                         alt="<?= htmlspecialchars($movie['title']) ?>" class="card-img">
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($movie['title']) ?></h5>
+                        <p class="card-text"><?= $movie['release_year'] ?></p>
+                        <a href="<?= BASE_URL ?>/movie?id=<?= $movie['id'] ?>" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                    <div class="card-footer">
+                        <?= $movie['annotation_count'] ?? 0 ?> annotations
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-         <div class="movie-card-placeholder" style="border: 1px solid #ccc; padding: 10px; width: 150px;">
-            Movie Poster<br>
-            perfect blue (1997)<br>
-            <small>2 annotations</small>
+    </section>
+<?php endif; ?>
+
+<?php if (!empty($popularCollections)): ?>
+    <section class="section">
+        <h2>Popular Collections</h2>
+        <div class="grid">
+            <?php foreach ($popularCollections as $collection): ?>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($collection['title']) ?></h5>
+                        <p class="card-text"><?= htmlspecialchars(substr($collection['description'], 0, 100)) ?>...</p>
+                        <div class="collection-meta mb-2">
+                            <div class="collection-user">
+                                <img src="<?= !empty($collection['avatar']) ? $collection['avatar'] : BASE_URL . '/img/default-avatar.jpg' ?>" 
+                                     alt="<?= htmlspecialchars($collection['username']) ?>" class="avatar avatar-sm">
+                                <span><?= htmlspecialchars($collection['username']) ?></span>
+                            </div>
+                        </div>
+                        <a href="<?= BASE_URL ?>/collection?id=<?= $collection['id'] ?>" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                    <div class="card-footer">
+                        <?= $collection['movie_count'] ?? 0 ?> movies
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-         <div class="movie-card-placeholder" style="border: 1px solid #ccc; padding: 10px; width: 150px;">
-            Movie Poster<br>
-            akira (1988)<br>
-            <small>7 annotations</small>
-        </div>
-         <div class="movie-card-placeholder" style="border: 1px solid #ccc; padding: 10px; width: 150px;">
-            Movie Poster<br>
-            ghost in the shell (1995)<br>
-            <small>3 annotations</small>
-        </div>
-    </div>
-</section>
+    </section>
+<?php endif; ?>
