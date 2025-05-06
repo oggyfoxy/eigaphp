@@ -1,4 +1,9 @@
 <IfModule mod_rewrite.c>
+    # ─── stop content‑negotiation from swallowing static files ───
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+
     RewriteEngine On
     RewriteBase /eiganights_php/public/
     
@@ -9,3 +14,4 @@
     # Route everything else to index.php
     RewriteRule ^ index.php [L]
 </IfModule>
+
