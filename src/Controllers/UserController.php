@@ -24,9 +24,6 @@ class UserController extends BaseController {
         $this->collectionModel = new Collection();
     }
     
-    /**
-     * User profile page
-     */
     public function profile($username = null) {
         if (!$username) {
             $username = $_GET['username'] ?? null;
@@ -54,13 +51,19 @@ class UserController extends BaseController {
         
         // Get user's recent annotations
         $annotations = $this->userModel->getRecentAnnotations($user['id'], 10);
+        // Ensure $annotations is an array even if no annotations are found
+        $annotations = $annotations ?: [];
         
         // Get user's favorite movies
         $favoriteMovies = $this->userModel->getFavoriteMovies($user['id'], 8);
+        // Ensure $favoriteMovies is an array
+        $favoriteMovies = $favoriteMovies ?: [];
         
         // Get user's collections
         $isOwner = Auth::isLoggedIn() && Auth::userId() == $user['id'];
         $collections = $this->collectionModel->getUserCollections($user['id'], $isOwner, 4);
+        // Ensure $collections is an array
+        $collections = $collections ?: [];
         
         // Check if current user is following this user
         $isFollowing = false;
@@ -80,26 +83,6 @@ class UserController extends BaseController {
         ];
         
         $this->render('users/profile', $data);
-
-            // NEW: load favorites + collections
-        $movieModel      = new \App\Models\Movie();
-        $favorites       = $movieModel->getFavoritesByUser($user['id']);
-
-        $collectionModel = new \App\Models\Collection();
-        // include private only if it’s the owner’s page
-        $includePrivate  = $isOwner;
-        $collections     = $collectionModel
-                            ->getUserCollections($user['id'], $includePrivate);
-
-        // pass them into your view
-        $this->render('users/profile', [
-            'pageTitle'   => $user['username'] . "'s Profile",
-            'user'        => $user,
-            'isOwner'     => $isOwner,
-            'favorites'   => $favorites,
-            'collections' => $collections,
-            // plus any existing data you were already passing…
-        ]);
     }
     
     /**

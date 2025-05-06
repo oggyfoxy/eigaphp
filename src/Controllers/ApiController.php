@@ -154,7 +154,7 @@ class ApiController extends BaseController {
         
         $this->jsonResponse(['success' => true, 'data' => $comments]);
     }
-    
+        
     /**
      * Get TMDB movie details API endpoint
      */

@@ -17,7 +17,7 @@ class Movie {
         
         return $result ? $result[0] : false;
     }
-    
+        
     /**
      * Get movie by TMDB ID
      */
@@ -67,21 +67,25 @@ class Movie {
         return $this->db->select($sql, [$limit, $offset]);
     }
     
-    /**
-     * Add or update movie in database
+        /**
+     * Save movie data from TMDB API
      */
     public function saveMovie($movieData) {
-        // Check if movie already exists by TMDB ID
+        // Check if movie exists by TMDB ID
         $existingMovie = $this->getMovieByTmdbId($movieData['tmdb_id']);
         
         if ($existingMovie) {
             // Update existing movie
-            $movieId = $existingMovie['id'];
-            
-            $sql = "UPDATE movies 
-                    SET title = ?, original_title = ?, release_year = ?, 
-                        poster_path = ?, backdrop_path = ?, overview = ?, 
-                        director = ?, runtime = ?, updated_at = CURRENT_TIMESTAMP 
+            $sql = "UPDATE movies SET 
+                    title = ?, 
+                    original_title = ?, 
+                    release_year = ?, 
+                    poster_path = ?, 
+                    backdrop_path = ?, 
+                    overview = ?, 
+                    director = ?, 
+                    runtime = ?,
+                    updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?";
             
             $params = [
@@ -93,17 +97,18 @@ class Movie {
                 $movieData['overview'] ?? null,
                 $movieData['director'] ?? null,
                 $movieData['runtime'] ?? null,
-                $movieId
+                $existingMovie['id']
             ];
             
             $this->db->update($sql, $params);
-            return $movieId;
+            
+            return $existingMovie['id'];
         } else {
             // Insert new movie
-            $sql = "INSERT INTO movies 
-                    (tmdb_id, title, original_title, release_year, poster_path, 
-                     backdrop_path, overview, director, runtime) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO movies (
+                    tmdb_id, title, original_title, release_year, poster_path, 
+                    backdrop_path, overview, director, runtime, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
             
             $params = [
                 $movieData['tmdb_id'],
@@ -119,7 +124,7 @@ class Movie {
             
             return $this->db->insert($sql, $params);
         }
-    }
+}
     
     /**
      * Get movie annotations

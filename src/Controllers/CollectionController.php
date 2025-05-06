@@ -262,8 +262,7 @@ class CollectionController extends BaseController {
             $this->redirect('');
         }
     }
-    
-    /**
+        /**
      * Add movie to collection
      */
     public function addMovie() {
@@ -271,16 +270,58 @@ class CollectionController extends BaseController {
         $this->requireAuth();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $result = $this->getPostData(['collection_id', 'movie_id']);
+            $collectionId = $_POST['collection_id'] ?? null;
+            $movieId = $_POST['movie_id'] ?? null;
+            $notes = $_POST['notes'] ?? null;
             
-            if (!empty($result['errors'])) {
-                $this->jsonResponse(['success' => false, 'errors' => $result['errors']], 400);
+            if (!$collectionId || !$movieId) {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    $this->jsonResponse(['success' => false, 'errors' => [
+                        'general' => 'Collection ID and Movie ID are required.'
+                    ]], 400);
+                } else {
+                    $this->setFlashMessage('error', 'Collection ID and Movie ID are required.');
+                    $this->redirect('');
+                }
                 return;
             }
+
+            // Check if movie exists already in db by TMDB id
+            $movie = $this->movieModel->getMovieByTmdbId($movieId);
             
-            $collectionId = $result['data']['collection_id'];
-            $movieId = $result['data']['movie_id'];
-            $notes = $_POST['notes'] ?? null;
+            // If not, fetch from TMDB API and save
+            if (!$movie) {
+                $movieData = $this->tmdbApi->getMovie($movieId);
+                if ($movieData) {
+                    $movieId = $this->movieModel->saveMovie($movieData);
+                    if (!$movieId) {
+                        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                            $this->jsonResponse(['success' => false, 'errors' => [
+                                'general' => 'Failed to save movie to database.'
+                            ]], 500);
+                        } else {
+                            $this->setFlashMessage('error', 'Failed to save movie to database.');
+                            $this->redirect("collection?id={$collectionId}");
+                        }
+                        return;
+                    }
+                } else {
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        $this->jsonResponse(['success' => false, 'errors' => [
+                            'general' => 'Failed to fetch movie data from TMDB API.'
+                        ]], 500);
+                    } else {
+                        $this->setFlashMessage('error', 'Failed to fetch movie data from TMDB API.');
+                        $this->redirect("collection?id={$collectionId}");
+                    }
+                    return;
+                }
+            } else {
+                $movieId = $movie['id'];
+            }
             
             // Add movie to collection
             $success = $this->collectionModel->addMovieToCollection(
@@ -291,25 +332,33 @@ class CollectionController extends BaseController {
             );
             
             if ($success) {
-                $this->jsonResponse([
-                    'success' => true,
-                    'message' => 'Movie added to collection successfully!'
-                ]);
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    $this->jsonResponse([
+                        'success' => true,
+                        'message' => 'Movie added to collection successfully!'
+                    ]);
+                } else {
+                    $this->setFlashMessage('success', 'Movie added to collection successfully!');
+                    $this->redirect("collection?id={$collectionId}");
+                }
             } else {
-                $this->jsonResponse([
-                    'success' => false,
-                    'errors' => ['general' => 'Failed to add movie to collection.']
-                ], 500);
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    $this->jsonResponse([
+                        'success' => false,
+                        'errors' => ['general' => 'Failed to add movie to collection.']
+                    ], 500);
+                } else {
+                    $this->setFlashMessage('error', 'Failed to add movie to collection.');
+                    $this->redirect("collection?id={$collectionId}");
+                }
             }
         } else {
-            // Not a POST request, return error
-            $this->jsonResponse([
-                'success' => false,
-                'errors' => ['method' => 'Invalid request method.']
-            ], 405);
+            // Not a POST request, redirect to home
+            $this->redirect('');
         }
-    }
-    
+}
     /**
      * Remove movie from collection
      */
@@ -391,6 +440,55 @@ class CollectionController extends BaseController {
                 $this->jsonResponse([
                     'success' => false,
                     'errors' => ['general' => 'Failed to update movie position.']
+                ], 500);
+            }
+        } else {
+            // Not a POST request, return error
+            $this->jsonResponse([
+                'success' => false,
+                'errors' => ['method' => 'Invalid request method.']
+            ], 405);
+        }
+    }
+
+
+    /**
+     * Create collection (AJAX version)
+     */
+    public function createAjax() {
+        // Check if user is logged in
+        $this->requireAuth();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $result = $this->getPostData(['title', 'description']);
+            
+            if (!empty($result['errors'])) {
+                $this->jsonResponse(['success' => false, 'errors' => $result['errors']], 400);
+                return;
+            }
+            
+            $title = $result['data']['title'];
+            $description = $result['data']['description'];
+            $isPrivate = isset($_POST['is_private']) ? (bool)$_POST['is_private'] : false;
+            
+            // Create collection
+            $collectionId = $this->collectionModel->createCollection(
+                Auth::userId(),
+                $title,
+                $description,
+                $isPrivate
+            );
+            
+            if ($collectionId) {
+                $this->jsonResponse([
+                    'success' => true,
+                    'message' => 'Collection created successfully!',
+                    'collection_id' => $collectionId
+                ]);
+            } else {
+                $this->jsonResponse([
+                    'success' => false,
+                    'errors' => ['general' => 'Failed to create collection.']
                 ], 500);
             }
         } else {

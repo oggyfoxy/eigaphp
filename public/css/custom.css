@@ -1,0 +1,247 @@
+/* CSS for Movie Timeline and Annotations */
+
+/* Timeline */
+.timeline-section {
+    margin: 40px 0;
+}
+
+.timeline {
+    position: relative;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.timeline-annotation {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    z-index: 2;
+}
+
+.timeline-annotation:hover {
+    transform: translateY(-50%) scale(1.5);
+    background-color: var(--primary-dark);
+}
+
+/* Annotation Form */
+.annotation-form {
+    background-color: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 30px;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+    opacity: 1;
+    max-height: 1000px;
+    overflow: hidden;
+}
+
+.annotation-form.hidden {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+/* Annotations */
+.annotation {
+    background-color: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.annotation.highlight {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.annotation-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.annotation-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.annotation-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.annotation-username {
+    font-weight: 600;
+}
+
+.annotation-timestamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.annotation-date {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+}
+
+.annotation-content {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.annotation-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.annotation-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.annotation-action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gray-text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.annotation-action:hover {
+    color: var(--primary-color);
+}
+
+.annotation-action.active {
+    color: var(--primary-color);
+}
+
+/* Comments */
+.comments {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.comment {
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-light);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.comment-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-username {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.comment-timestamp {
+    color: var(--gray-text);
+    font-size: 0.8rem;
+}
+
+.comment-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.delete-comment-btn {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.delete-comment-btn:hover {
+    color: var(--danger);
+}
+
+/* Annotations Filter */
+.annotation-filters {
+    margin-bottom: 20px;
+}
+
+.annotation-filter {
+    margin-right: 10px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+.annotation-filter.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Animation */
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

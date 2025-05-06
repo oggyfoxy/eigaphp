@@ -122,6 +122,10 @@ try {
             $controller = new \App\Controllers\CollectionController();
             $controller->create();
             break;
+        case '/collection/create-ajax':
+            $controller = new \App\Controllers\CollectionController();
+            $controller->createAjax();
+            break;
         case '/collection/edit':
             $controller = new \App\Controllers\CollectionController();
             $controller->edit($_GET['id'] ?? null);
@@ -177,6 +181,11 @@ try {
         case '/api/annotations':
             $controller = new \App\Controllers\ApiController();
             $controller->getMovieAnnotations();
+            break;
+                    // Add this route to the route definitions in public/index.php
+        case '/api/annotation-comments':
+            $controller = new \App\Controllers\ApiController();
+            $controller->getAnnotationComments();
             break;
             
         // Search
