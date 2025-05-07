@@ -7,7 +7,12 @@ class Collection {
     public function __construct() {
         $this->db = Database::getInstance();
     }
-    
+        /**
+     * Add method to Collection model to get last DB error 
+     */
+    public function getLastError() {
+        return $this->db->errorInfo();
+    }
     /**
      * Get collection by ID
      */
@@ -45,13 +50,22 @@ class Collection {
     }
     
     /**
-     * Create a new collection
+     * Create a new collection - Fixed version
      */
     public function createCollection($userId, $title, $description = '', $isPrivate = false) {
-        $sql = "INSERT INTO collections (user_id, title, description, is_private) 
-                VALUES (?, ?, ?, ?)";
+        if (empty($title)) {
+            return false;
+        }
         
-        return $this->db->insert($sql, [$userId, $title, $description, $isPrivate]);
+        try {
+            $sql = "INSERT INTO collections (user_id, title, description, is_private, created_at, updated_at) 
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+            
+            return $this->db->insert($sql, [$userId, $title, $description, $isPrivate ? 1 : 0]);
+        } catch (Exception $e) {
+            error_log("Collection creation error: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**

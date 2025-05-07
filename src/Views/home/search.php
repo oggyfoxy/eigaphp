@@ -5,7 +5,6 @@
     <input type="text" name="q" value="<?= htmlspecialchars($query) ?>" placeholder="Search movies…" style="flex:1; padding:8px">
     <button type="submit" class="btn" style="margin-left:10px">Search</button>
 </form>
-
 <?php if ($query === ''): ?>
     <p class="mt-20">Start typing above to discover movies.</p>
 <?php elseif (empty($results)): ?>
@@ -100,7 +99,7 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
         // Open modal when clicking "Add to Collection"
         const addButtons = document.querySelectorAll('.add-to-collection-btn');
         const modal = document.getElementById('collectionModal');
@@ -160,28 +159,22 @@
                 const description = document.getElementById('newCollectionDescription').value;
                 const isPrivate = document.getElementById('newCollectionPrivate').checked;
                 
-                // First create collection
-                fetch('<?= BASE_URL ?>/collection/create', {
+                // First create collection using AJAX endpoint
+                fetch(BASE_URL + '/collection/create-ajax', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: `title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&is_private=${isPrivate ? 1 : 0}`
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to create collection');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Extract collection ID from redirect URL in the response
-                    const match = html.match(/collection\?id=(\d+)/);
-                    if (match && match[1]) {
-                        const newCollectionId = match[1];
-                        addMovieToCollection(newCollectionId, movieId, notes);
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Use the returned collection_id
+                        addMovieToCollection(data.collection_id, movieId, notes);
                     } else {
-                        throw new Error('Could not determine new collection ID');
+                        throw new Error(data.errors?.general || 'Failed to create collection');
                     }
                 })
                 .catch(error => {
@@ -195,27 +188,27 @@
         });
         
         function addMovieToCollection(collectionId, movieId, notes) {
-            fetch('<?= BASE_URL ?>/collection/add-movie', {
+            fetch(BASE_URL + '/collection/add-movie', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: `collection_id=${collectionId}&movie_id=${movieId}&notes=${encodeURIComponent(notes || '')}`
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to add movie to collection');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Movie added to collection successfully!');
+                    modal.style.display = 'none';
+                    
+                    // Reset form
+                    document.getElementById('newCollectionForm').style.display = 'none';
+                    document.getElementById('collectionSelect').value = '';
+                    document.getElementById('movieNotes').value = '';
+                } else {
+                    throw new Error(data.errors?.general || 'Failed to add movie to collection');
                 }
-                return response.text();
-            })
-            .then(result => {
-                alert('Movie added to collection successfully!');
-                modal.style.display = 'none';
-                
-                // Reset form
-                document.getElementById('newCollectionForm').style.display = 'none';
-                document.getElementById('collectionSelect').value = '';
-                document.getElementById('movieNotes').value = '';
             })
             .catch(error => {
                 console.error('Error:', error);

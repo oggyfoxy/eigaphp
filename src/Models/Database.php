@@ -62,16 +62,34 @@ class Database {
         }
     }
     
-    // Helper method for INSERT queries
+        /**
+     * Improved insert method for the Database class
+     */
     public function insert($sql, $params = []) {
         try {
+            // Set PDO to throw exceptions for better error handling
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
-            return $this->conn->lastInsertId();
+            $success = $stmt->execute($params);
+            
+            if ($success) {
+                return $this->conn->lastInsertId();
+            } else {
+                error_log('Database Insert Failed: ' . implode(', ', $stmt->errorInfo()));
+                return false;
+            }
         } catch (PDOException $e) {
             error_log('Database Insert Error: ' . $e->getMessage());
             return false;
         }
+    }
+
+        /**
+     * Get last error information
+     */
+    public function errorInfo() {
+        return $this->conn->errorInfo();
     }
     
     // Helper method for UPDATE queries
